@@ -61,7 +61,9 @@ export function AuthLayout({
                   />
                 </Pressable>
               )}
-              <Text className="text-xs font-semibold uppercase tracking-[3px] text-white/80">
+              <Text
+                style={{ fontFamily: Fonts.semiBold }}
+                className="text-xs uppercase tracking-[3px] text-white/80">
                 {navLabel}
               </Text>
             </View>
@@ -72,13 +74,15 @@ export function AuthLayout({
                 style={styles.logo}
                 contentFit="contain"
               />
-              <Text
-                style={{ fontFamily: Fonts.serif }}
-                className="text-5xl font-bold text-white">
+              <Text style={{ fontFamily: Fonts.extraBold }} className="text-5xl text-white">
                 {title}
               </Text>
               {subtitle ? (
-                <Text className="text-center text-base text-white/85">{subtitle}</Text>
+                <Text
+                  style={{ fontFamily: Fonts.regular }}
+                  className="text-center text-base text-white/85">
+                  {subtitle}
+                </Text>
               ) : null}
             </View>
 

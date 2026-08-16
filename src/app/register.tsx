@@ -5,6 +5,7 @@ import { Text, View } from 'react-native';
 import { AuthLayout } from '@/components/auth-layout';
 import { FormField } from '@/components/form-field';
 import { PrimaryButton } from '@/components/primary-button';
+import { Fonts } from '@/constants/theme';
 import { formatCpf, isValidCpfFormat } from '@/utils/cpf';
 
 type FormErrors = {
@@ -116,9 +117,13 @@ export default function RegisterScreen() {
       <View className="gap-4">
         <PrimaryButton label="Cadastrar" onPress={handleSubmit} />
         <View className="flex-row justify-center gap-1">
-          <Text className="text-sm text-muted">Já tem uma conta?</Text>
+          <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+            Já tem uma conta?
+          </Text>
           <Link href="/login">
-            <Text className="text-sm font-semibold text-primary">Entrar</Text>
+            <Text style={{ fontFamily: Fonts.semiBold }} className="text-sm text-primary">
+              Entrar
+            </Text>
           </Link>
         </View>
       </View>

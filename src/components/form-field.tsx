@@ -2,6 +2,7 @@ import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 type FormFieldProps = {
@@ -38,7 +39,11 @@ export function FormField({
 
   return (
     <View className="gap-1.5">
-      <Text className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</Text>
+      <Text
+        style={{ fontFamily: Fonts.semiBold }}
+        className="text-xs uppercase tracking-wide text-muted">
+        {label}
+      </Text>
       <View
         className={`flex-row items-center gap-3 rounded-full border bg-surface-subtle px-5 py-3.5 dark:bg-neutral-800 ${
           error ? 'border-red-400' : 'border-transparent'
@@ -55,6 +60,7 @@ export function FormField({
           autoCapitalize={autoCapitalize}
           textContentType={textContentType}
           autoComplete={autoComplete}
+          style={{ fontFamily: Fonts.regular }}
           className="flex-1 text-base text-black dark:text-white"
         />
         {secureToggle && (
@@ -71,7 +77,11 @@ export function FormField({
           </Pressable>
         )}
       </View>
-      {error ? <Text className="text-xs text-red-500">{error}</Text> : null}
+      {error ? (
+        <Text style={{ fontFamily: Fonts.regular }} className="text-xs text-red-500">
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }
