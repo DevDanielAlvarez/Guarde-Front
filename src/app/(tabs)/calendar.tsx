@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppointmentCard } from '@/components/appointment-card';
 import { MiniCalendar } from '@/components/mini-calendar';
-import { Fonts } from '@/constants/theme';
+import { BottomTabInset, Fonts } from '@/constants/theme';
 
 const MOCK_APPOINTMENTS = [
   { id: '1', title: 'Cardiologista', date: '12/03/2026' },
@@ -17,7 +17,10 @@ export default function CalendarScreen() {
   return (
     <View className="flex-1 bg-surface-subtle dark:bg-black">
       <SafeAreaView className="flex-1" edges={['top']}>
-        <ScrollView contentContainerClassName="p-4 pb-24" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={{ marginBottom: BottomTabInset }}
+          contentContainerClassName="p-4 pb-8"
+          showsVerticalScrollIndicator={false}>
           <View className="gap-5 rounded-[32px] bg-surface p-5 shadow-sm shadow-black/10 dark:bg-neutral-900">
             <Text
               style={{ fontFamily: Fonts.extraBold }}
@@ -36,7 +39,9 @@ export default function CalendarScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <View className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-black/30">
+      <View
+        className="absolute right-6 h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-black/30"
+        style={{ bottom: BottomTabInset + 16 }}>
         <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} tintColor="#FFFFFF" size={24} />
       </View>
     </View>

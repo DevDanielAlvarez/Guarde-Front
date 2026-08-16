@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ExamFileCard } from '@/components/exam-file-card';
 import { FolderChip } from '@/components/folder-chip';
-import { Fonts } from '@/constants/theme';
+import { BottomTabInset, Fonts } from '@/constants/theme';
 
 const MOCK_FOLDERS = [
   { id: '1', name: 'Exames' },
@@ -27,7 +27,10 @@ export default function FilesScreen() {
   return (
     <View className="flex-1 bg-surface-subtle dark:bg-black">
       <SafeAreaView className="flex-1" edges={['top']}>
-        <ScrollView contentContainerClassName="p-4 pb-24" showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={{ marginBottom: BottomTabInset }}
+          contentContainerClassName="p-4 pb-8"
+          showsVerticalScrollIndicator={false}>
           <Text
             style={{ fontFamily: Fonts.extraBold }}
             className="mb-5 text-3xl text-black dark:text-white">
@@ -57,7 +60,9 @@ export default function FilesScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      <View className="absolute bottom-6 right-6 h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-black/30">
+      <View
+        className="absolute right-6 h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-black/30"
+        style={{ bottom: BottomTabInset + 16 }}>
         <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} tintColor="#FFFFFF" size={24} />
       </View>
     </View>

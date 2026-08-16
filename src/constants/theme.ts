@@ -45,5 +45,8 @@ export const Spacing = {
   six: 64,
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+// Matches the `height` of the curved bottom bar in (tabs)/_layout.tsx — its
+// notch cutout never reaches above this line, so screens only need to clear
+// this much to avoid content showing through the transparent notch.
+export const BottomTabInset = 64;
 export const MaxContentWidth = 800;
