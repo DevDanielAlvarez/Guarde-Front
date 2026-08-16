@@ -1,5 +1,7 @@
 import { Pressable, Text } from 'react-native';
 
+import { Fonts } from '@/constants/theme';
+
 type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
@@ -13,7 +15,9 @@ export function PrimaryButton({ label, onPress, disabled }: PrimaryButtonProps) 
       disabled={disabled}
       className={`items-center rounded-full py-4 ${disabled ? 'bg-primary/40' : 'bg-primary'}`}
       style={({ pressed }) => pressed && { opacity: 0.85 }}>
-      <Text className="text-base font-semibold text-white">{label}</Text>
+      <Text style={{ fontFamily: Fonts.semiBold }} className="text-base text-white">
+        {label}
+      </Text>
     </Pressable>
   );
 }

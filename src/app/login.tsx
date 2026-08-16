@@ -5,6 +5,7 @@ import { Text, View } from 'react-native';
 import { AuthLayout } from '@/components/auth-layout';
 import { FormField } from '@/components/form-field';
 import { PrimaryButton } from '@/components/primary-button';
+import { Fonts } from '@/constants/theme';
 import { formatCpf, isValidCpfFormat } from '@/utils/cpf';
 
 type FormErrors = {
@@ -62,16 +63,22 @@ export default function LoginScreen() {
         />
       </View>
 
-      <Text className="-mt-2 text-right text-xs font-semibold text-primary">
+      <Text
+        style={{ fontFamily: Fonts.semiBold }}
+        className="-mt-2 text-right text-xs text-primary">
         Esqueci minha senha
       </Text>
 
       <View className="gap-4">
         <PrimaryButton label="Entrar" onPress={handleSubmit} />
         <View className="flex-row justify-center gap-1">
-          <Text className="text-sm text-muted">Não tem uma conta?</Text>
+          <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+            Não tem uma conta?
+          </Text>
           <Link href="/register">
-            <Text className="text-sm font-semibold text-primary">Cadastre-se</Text>
+            <Text style={{ fontFamily: Fonts.semiBold }} className="text-sm text-primary">
+              Cadastre-se
+            </Text>
           </Link>
         </View>
       </View>
