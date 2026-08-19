@@ -61,7 +61,7 @@ export default function FilesScreen() {
       </SafeAreaView>
 
       <View
-        className="absolute right-6 h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-black/30"
+        className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-black/30"
         style={{ bottom: BottomTabInset + 16 }}>
         <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} tintColor="#FFFFFF" size={24} />
       </View>

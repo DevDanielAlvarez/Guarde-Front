@@ -1,5 +1,5 @@
 import { CurvedBottomBarExpo } from 'react-native-curved-bottom-bar';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, useWindowDimensions } from 'react-native';
 
 import { ChatCircleButton, TabBarItem } from '@/components/tab-bar';
 
@@ -17,6 +17,7 @@ type TabBarRenderArgs = {
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { width } = useWindowDimensions();
 
   return (
     <CurvedBottomBarExpo.Navigator
@@ -24,7 +25,7 @@ export default function TabsLayout() {
       circlePosition="CENTER"
       initialRouteName="index"
       height={64}
-      width={undefined}
+      width={width}
       id={undefined}
       style={undefined}
       screenListeners={undefined}
