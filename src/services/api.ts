@@ -56,3 +56,42 @@ export async function apiRequest<TResponse>(
 
   return data as TResponse;
 }
+
+type UploadOptions = {
+  formData: FormData;
+  token?: string | null;
+};
+
+/**
+ * Same error handling as apiRequest, but for multipart uploads — no JSON.stringify
+ * and no manual Content-Type, so fetch can set the multipart boundary itself.
+ */
+export async function apiUpload<TResponse>(
+  path: string,
+  { formData, token }: UploadOptions
+): Promise<TResponse> {
+  if (!API_URL) {
+    throw new Error('EXPO_PUBLIC_API_URL não está configurada.');
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new ApiError(
+      data?.message ?? 'Não foi possível completar a requisição.',
+      response.status,
+      data?.errors ?? {}
+    );
+  }
+
+  return data as TResponse;
+}

@@ -5,15 +5,20 @@ import { Fonts } from '@/constants/theme';
 
 type FolderChipProps = {
   name: string;
+  selected?: boolean;
+  onPress?: () => void;
 };
 
-export function FolderChip({ name }: FolderChipProps) {
+export function FolderChip({ name, selected, onPress }: FolderChipProps) {
   return (
-    <Pressable className="w-20 items-center gap-2">
-      <View className="h-16 w-20 items-center justify-center rounded-2xl bg-primary/15 dark:bg-primary/20">
+    <Pressable onPress={onPress} className="w-20 items-center gap-2">
+      <View
+        className={`h-16 w-20 items-center justify-center rounded-2xl ${
+          selected ? 'bg-primary' : 'bg-primary/15 dark:bg-primary/20'
+        }`}>
         <SymbolView
           name={{ ios: 'folder.fill', android: 'folder', web: 'folder' }}
-          tintColor="#0A84FF"
+          tintColor={selected ? '#FFFFFF' : '#0A84FF'}
           size={28}
         />
       </View>
