@@ -1,16 +1,60 @@
 import { useFonts } from 'expo-font';
 import { NavigationBar } from 'expo-navigation-bar';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import {
+  DarkTheme,
+  DefaultTheme,
+  Stack,
+  ThemeProvider,
+  useRouter,
+  useSegments,
+} from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import { AuthProvider } from '@/contexts/auth-context';
+import { AuthProvider, useAuth } from '@/contexts/auth-context';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+const PUBLIC_SEGMENTS = ['welcome', 'login', 'register'];
+
+function RootNavigator() {
   const colorScheme = useColorScheme();
+  const { isAuthenticated, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+    const inPublicGroup = PUBLIC_SEGMENTS.includes(segments[0] ?? '');
+    if (!isAuthenticated && !inPublicGroup) {
+      router.replace('/welcome');
+    } else if (isAuthenticated && inPublicGroup) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, isLoading, segments, router]);
+
+  return (
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <NavigationBar hidden />
+      <AnimatedSplashOverlay />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="welcome" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="settings" />
+        <Stack.Screen name="chat" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="medical-summary" options={{ presentation: 'modal' }} />
+      </Stack>
+    </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     // Imported by exact file path (instead of the '@expo-google-fonts/inter' barrel)
     // so Metro only bundles the weights we actually use.
@@ -31,18 +75,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <NavigationBar hidden />
-        <AnimatedSplashOverlay />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="login" />
-          <Stack.Screen name="register" />
-          <Stack.Screen name="settings" />
-          <Stack.Screen name="chat" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="medical-summary" options={{ presentation: 'modal' }} />
-        </Stack>
-      </ThemeProvider>
+      <RootNavigator />
     </AuthProvider>
   );
 }
