@@ -29,7 +29,7 @@ export default function TabsLayout() {
       id={undefined}
       style={undefined}
       screenListeners={undefined}
-      screenOptions={undefined}
+      screenOptions={{ headerShown: false }}
       defaultScreenOptions={undefined}
       backBehavior={undefined}
       circleWidth={56}

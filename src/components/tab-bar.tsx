@@ -43,8 +43,8 @@ export function TabBarItem({ routeName, selectedTab, navigate }: TabBarItemProps
       onPress={() => navigate(routeName)}
       className="flex-1 items-center justify-center py-2">
       <View
-        className={`h-10 w-10 items-center justify-center rounded-2xl ${
-          isFocused ? 'bg-primary' : ''
+        className={`h-10 w-14 items-center justify-center rounded-full ${
+          isFocused ? 'bg-primary shadow-sm shadow-primary/40' : ''
         }`}>
         <SymbolView
           name={isFocused ? activeIcon : icon}

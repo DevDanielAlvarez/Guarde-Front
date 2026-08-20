@@ -1,10 +1,13 @@
 import { Image } from 'expo-image';
-import { ScrollView, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { InfoChip } from '@/components/info-chip';
 import { ProfileSection } from '@/components/profile-section';
 import { BottomTabInset, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { formatCpf } from '@/utils/cpf';
 
 const MOCK_PROFILE = {
@@ -21,9 +24,24 @@ const MOCK_PROFILE = {
 };
 
 export default function ProfileScreen() {
+  const theme = useTheme();
+
   return (
     <View className="flex-1 bg-surface-subtle dark:bg-black">
       <SafeAreaView className="flex-1" edges={['top']}>
+        <View className="flex-row justify-end px-4 pt-2">
+          <Pressable
+            onPress={() => router.push('/settings')}
+            hitSlop={8}
+            className="h-10 w-10 items-center justify-center rounded-full bg-surface dark:bg-neutral-900">
+            <SymbolView
+              name={{ ios: 'gearshape.fill', android: 'settings', web: 'settings' }}
+              tintColor={theme.textSecondary}
+              size={20}
+            />
+          </Pressable>
+        </View>
+
         <ScrollView
           style={{ marginBottom: BottomTabInset }}
           contentContainerClassName="gap-4 p-4 pb-8"

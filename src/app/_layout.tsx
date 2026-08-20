@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
+import { AuthProvider } from '@/contexts/auth-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -18,6 +19,10 @@ export default function RootLayout() {
     Inter_600SemiBold: require('@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf'),
     Inter_700Bold: require('@expo-google-fonts/inter/700Bold/Inter_700Bold.ttf'),
     Inter_800ExtraBold: require('@expo-google-fonts/inter/800ExtraBold/Inter_800ExtraBold.ttf'),
+    // expo-symbols loads this itself per-icon on Android/web, but that's async and
+    // per-instance — preloading it here means it's already cached by the time any
+    // SymbolView mounts, instead of racing (and sometimes losing) on first paint.
+    MaterialSymbols_400Regular: require('@expo-google-fonts/material-symbols/400Regular/MaterialSymbols_400Regular.ttf'),
   });
 
   if (!fontsLoaded) {
@@ -25,15 +30,19 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <NavigationBar hidden />
-      <AnimatedSplashOverlay />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="login" />
-        <Stack.Screen name="register" />
-        <Stack.Screen name="chat" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <NavigationBar hidden />
+        <AnimatedSplashOverlay />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="login" />
+          <Stack.Screen name="register" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="chat" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="medical-summary" options={{ presentation: 'modal' }} />
+        </Stack>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

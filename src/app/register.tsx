@@ -51,11 +51,10 @@ export default function RegisterScreen() {
 
   return (
     <AuthLayout
-      heroImage={require('@/assets/images/auth/register_bg.jpg')}
+      heroImage={require('@/assets/images/auth/login_bg.png')}
       navLabel="Criar conta"
       title="Guarde"
-      subtitle="Centralize seus dados clínicos com segurança"
-      showBack>
+      subtitle="Centralize seus dados clínicos com segurança">
       <View className="gap-4">
         <FormField
           label="Nome completo"

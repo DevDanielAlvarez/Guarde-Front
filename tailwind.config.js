@@ -2,6 +2,9 @@
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
+  // 'class' (instead of 'media') lets the user override the system theme manually —
+  // see src/components/theme-toggle.tsx.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
