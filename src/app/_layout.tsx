@@ -29,10 +29,15 @@ function RootNavigator() {
     if (isLoading) {
       return;
     }
-    const inPublicGroup = PUBLIC_SEGMENTS.includes(segments[0] ?? '');
+    const segment = segments[0] ?? '';
+    const inPublicGroup = PUBLIC_SEGMENTS.includes(segment);
     if (!isAuthenticated && !inPublicGroup) {
       router.replace('/welcome');
-    } else if (isAuthenticated && inPublicGroup) {
+    } else if (isAuthenticated && segment === 'welcome') {
+      // Only the welcome screen auto-redirects once authenticated (e.g. app
+      // reopened with a saved session). Login and register own their own
+      // post-auth navigation (register sends the user into onboarding
+      // instead of home) — redirecting them here too raced against that.
       router.replace('/');
     }
   }, [isAuthenticated, isLoading, segments, router]);
@@ -46,6 +51,10 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="login" />
         <Stack.Screen name="register" />
+        <Stack.Screen name="onboarding-allergies" />
+        <Stack.Screen name="onboarding-conditions" />
+        <Stack.Screen name="onboarding-blood-type" />
+        <Stack.Screen name="onboarding-continuous-medications" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="chat" options={{ presentation: 'modal' }} />
         <Stack.Screen name="medical-summary" options={{ presentation: 'modal' }} />

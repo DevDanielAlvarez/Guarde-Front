@@ -1,23 +1,39 @@
 import { router } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProfileSection } from '@/components/profile-section';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { BottomTabInset, Fonts } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
+  const { logout } = useAuth();
+
+  async function confirmLogout() {
+    await logout();
+    router.replace('/login');
+  }
 
   function handleLogout() {
+    // react-native-web doesn't implement Alert.alert (it silently no-ops),
+    // so web needs its own confirm path.
+    if (Platform.OS === 'web') {
+      if (window.confirm('Tem certeza que deseja sair?')) {
+        confirmLogout();
+      }
+      return;
+    }
+
     Alert.alert('Sair da conta', 'Tem certeza que deseja sair?', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Sair',
         style: 'destructive',
-        onPress: () => router.replace('/login'),
+        onPress: confirmLogout,
       },
     ]);
   }

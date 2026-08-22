@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import * as authService from '@/services/auth';
 import { ApiError } from '@/services/api';
-import type { AuthUser } from '@/services/auth';
+import type { AuthUser, RegisterPayload } from '@/services/auth';
 import { tokenStorage } from '@/utils/token-storage';
 
 type AuthContextValue = {
@@ -11,6 +11,7 @@ type AuthContextValue = {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (login: string, password: string) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -41,6 +42,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: token !== null,
       async login(login: string, password: string) {
         const response = await authService.login(login, password);
+        await tokenStorage.saveSession(response.token, response.user);
+        setUser(response.user);
+        setToken(response.token);
+      },
+      async register(payload: RegisterPayload) {
+        const response = await authService.register(payload);
         await tokenStorage.saveSession(response.token, response.user);
         setUser(response.user);
         setToken(response.token);

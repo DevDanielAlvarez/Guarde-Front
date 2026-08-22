@@ -6,6 +6,8 @@ import { AuthLayout } from '@/components/auth-layout';
 import { FormField } from '@/components/form-field';
 import { PrimaryButton } from '@/components/primary-button';
 import { Fonts } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
+import { ApiError } from '@/services/api';
 import { formatCpf, isValidCpfFormat } from '@/utils/cpf';
 
 type FormErrors = {
@@ -19,14 +21,16 @@ type FormErrors = {
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/;
 
 export default function RegisterScreen() {
+  const { register } = useAuth();
   const [name, setName] = useState('');
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const nextErrors: FormErrors = {};
     if (name.trim().length < 3) {
       nextErrors.name = 'Informe seu nome completo.';
@@ -37,15 +41,40 @@ export default function RegisterScreen() {
     if (!EMAIL_PATTERN.test(email)) {
       nextErrors.email = 'Informe um e-mail válido.';
     }
-    if (password.length < 6) {
-      nextErrors.password = 'A senha deve ter ao menos 6 caracteres.';
+    if (password.length < 8) {
+      nextErrors.password = 'A senha deve ter ao menos 8 caracteres.';
     }
     if (confirmPassword !== password) {
       nextErrors.confirmPassword = 'As senhas não coincidem.';
     }
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length === 0) {
-      router.replace('/login');
+    if (Object.keys(nextErrors).length > 0) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        passwordConfirmation: confirmPassword,
+        cpf,
+      });
+      router.replace('/onboarding-allergies');
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setErrors({
+          name: error.errors.name?.[0],
+          email: error.errors.email?.[0],
+          password: error.errors.password?.[0],
+          cpf: error.errors.cpf?.[0],
+        });
+      } else {
+        setErrors({ email: 'Não foi possível conectar ao servidor. Tente novamente.' });
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -114,7 +143,11 @@ export default function RegisterScreen() {
       </View>
 
       <View className="gap-4">
-        <PrimaryButton label="Cadastrar" onPress={handleSubmit} />
+        <PrimaryButton
+          label={isSubmitting ? 'Cadastrando...' : 'Cadastrar'}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+        />
         <View className="flex-row justify-center gap-1">
           <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
             Já tem uma conta?
