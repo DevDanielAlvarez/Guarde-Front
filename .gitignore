@@ -42,3 +42,8 @@ example
 # generated native folders
 /ios
 /android
+
+# local-only assistant config (not part of the repo)
+/.claude/
+/CLAUDE.md
+/AGENTS.md
