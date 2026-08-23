@@ -1,19 +1,33 @@
+import { router, useFocusEffect } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { ScrollView, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppointmentCard } from '@/components/appointment-card';
 import { MiniCalendar } from '@/components/mini-calendar';
 import { BottomTabInset, Fonts } from '@/constants/theme';
-
-const MOCK_APPOINTMENTS = [
-  { id: '1', title: 'Cardiologista', date: '12/03/2026' },
-  { id: '2', title: 'Ortopedista', date: '15/03/2026' },
-  { id: '3', title: 'Exame de sangue', date: '19/03/2026' },
-  { id: '4', title: 'Exame de urina', date: '25/03/2026' },
-];
+import { useAuth } from '@/contexts/auth-context';
+import { listAppointments, type Appointment } from '@/services/appointments';
+import { formatAppointmentDateTime } from '@/utils/date';
 
 export default function CalendarScreen() {
+  const { token } = useAuth();
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!token) {
+        return;
+      }
+      listAppointments(token)
+        .then((response) => setAppointments(response.data))
+        .catch(() => {
+          /* keeps the previous list on screen if a refresh fails */
+        });
+    }, [token])
+  );
+
   return (
     <View className="flex-1 bg-surface-subtle dark:bg-black">
       <SafeAreaView className="flex-1" edges={['top']}>
@@ -31,19 +45,37 @@ export default function CalendarScreen() {
             <MiniCalendar year={2026} month={2} />
 
             <View className="gap-3">
-              {MOCK_APPOINTMENTS.map((item) => (
-                <AppointmentCard key={item.id} title={item.title} date={item.date} />
-              ))}
+              {appointments.length === 0 ? (
+                <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                  Nenhuma consulta agendada ainda.
+                </Text>
+              ) : (
+                appointments.map((appointment) => (
+                  <AppointmentCard
+                    key={appointment.id}
+                    title={appointment.title}
+                    date={formatAppointmentDateTime(appointment.scheduled_at)}
+                    status={appointment.status}
+                    onPress={() =>
+                      router.push({
+                        pathname: '/appointment/[id]',
+                        params: { id: appointment.id, appointment: JSON.stringify(appointment) },
+                      })
+                    }
+                  />
+                ))
+              )}
             </View>
           </View>
         </ScrollView>
       </SafeAreaView>
 
-      <View
+      <Pressable
+        onPress={() => router.push('/schedule-appointment')}
         className="absolute right-6 h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg shadow-black/30"
         style={{ bottom: BottomTabInset + 16 }}>
         <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} tintColor="#FFFFFF" size={24} />
-      </View>
+      </Pressable>
     </View>
   );
 }

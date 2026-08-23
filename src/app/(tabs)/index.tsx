@@ -17,6 +17,7 @@ const MOCK_PROFILE = {
 const NEXT_APPOINTMENT = {
   title: 'Cardiologista — Dra. Camila Nogueira',
   date: '12/03/2026 às 14h30',
+  status: 'scheduled' as const,
 };
 
 const RECENT_EXAMS = [
@@ -166,7 +167,12 @@ export default function HomeScreen() {
           <ProfileSection
             title="Próxima consulta"
             icon={{ ios: 'calendar', android: 'calendar_month', web: 'calendar_month' }}>
-            <AppointmentCard title={NEXT_APPOINTMENT.title} date={NEXT_APPOINTMENT.date} />
+            <AppointmentCard
+              title={NEXT_APPOINTMENT.title}
+              date={NEXT_APPOINTMENT.date}
+              status={NEXT_APPOINTMENT.status}
+              onPress={() => navigation.navigate('calendar')}
+            />
             <SectionLink
               label="Ver agenda completa"
               onPress={() => navigation.navigate('calendar')}
