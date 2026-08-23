@@ -69,3 +69,84 @@ export function updateBloodType(token: string, bloodType: BloodType): Promise<vo
     body: { blood_type: bloodType },
   });
 }
+
+export type PatientAllergy = {
+  id: string;
+  medicationId: string;
+  medicationName: string;
+  severity: 'mild' | 'moderate' | 'severe';
+};
+
+export type PatientCondition = {
+  id: string;
+  healthConditionId: string;
+  conditionName: string;
+  status: 'active' | 'resolved';
+};
+
+export type PatientContinuousMedication = {
+  id: string;
+  medicationId: string;
+  medicationName: string;
+  dosage: string;
+  frequency: string;
+};
+
+export type PatientProfile = {
+  name: string;
+  cpf: string | null;
+  age: number | null;
+  bloodType: BloodType | null;
+  allergies: PatientAllergy[];
+  conditions: PatientCondition[];
+  continuousMedications: PatientContinuousMedication[];
+};
+
+type PatientProfileResponse = {
+  data: {
+    name: string;
+    cpf: string | null;
+    age: number | null;
+    blood_type: BloodType | null;
+    allergies: { id: string; medication_id: string; medication_name: string; severity: string }[];
+    conditions: { id: string; health_condition_id: string; condition_name: string; status: string }[];
+    continuous_medications: {
+      id: string;
+      medication_id: string;
+      medication_name: string;
+      dosage: string;
+      frequency: string;
+    }[];
+  };
+};
+
+export async function getProfile(token: string): Promise<PatientProfile> {
+  const response = await apiRequest<PatientProfileResponse>('/api/profile', { token });
+  const { data } = response;
+
+  return {
+    name: data.name,
+    cpf: data.cpf,
+    age: data.age,
+    bloodType: data.blood_type,
+    allergies: data.allergies.map((allergy) => ({
+      id: allergy.id,
+      medicationId: allergy.medication_id,
+      medicationName: allergy.medication_name,
+      severity: allergy.severity as PatientAllergy['severity'],
+    })),
+    conditions: data.conditions.map((condition) => ({
+      id: condition.id,
+      healthConditionId: condition.health_condition_id,
+      conditionName: condition.condition_name,
+      status: condition.status as PatientCondition['status'],
+    })),
+    continuousMedications: data.continuous_medications.map((medication) => ({
+      id: medication.id,
+      medicationId: medication.medication_id,
+      medicationName: medication.medication_name,
+      dosage: medication.dosage,
+      frequency: medication.frequency,
+    })),
+  };
+}

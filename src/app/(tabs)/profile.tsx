@@ -1,30 +1,57 @@
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { InfoChip } from '@/components/info-chip';
 import { ProfileSection } from '@/components/profile-section';
 import { BottomTabInset, Fonts } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
 import { useTheme } from '@/hooks/use-theme';
+import { getProfile, type PatientProfile } from '@/services/clinical-profile';
 import { formatCpf } from '@/utils/cpf';
-
-const MOCK_PROFILE = {
-  name: 'Ana Beatriz Ferreira',
-  age: 34,
-  cpf: formatCpf('12345678900'),
-  bloodType: 'O+',
-  allergies: ['Dipirona', 'Penicilina', 'Látex'],
-  conditions: ['Arritmia cardíaca', 'Lesão no joelho direito', 'Lesão no cotovelo esquerdo'],
-  medications: [
-    { name: 'Losartana 50mg', schedule: '1x ao dia, pela manhã' },
-    { name: 'Propranolol 40mg', schedule: '2x ao dia' },
-  ],
-};
 
 export default function ProfileScreen() {
   const theme = useTheme();
+  const { token } = useAuth();
+  const [profile, setProfile] = useState<PatientProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!token) {
+        return;
+      }
+      let cancelled = false;
+      getProfile(token)
+        .then((data) => {
+          if (!cancelled) {
+            setProfile(data);
+          }
+        })
+        .catch(() => {
+          /* mantém os dados já carregados na tela em caso de falha */
+        })
+        .finally(() => {
+          if (!cancelled) {
+            setIsLoading(false);
+          }
+        });
+      return () => {
+        cancelled = true;
+      };
+    }, [token])
+  );
+
+  if (isLoading || !profile) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-subtle dark:bg-black">
+        <ActivityIndicator color="#0A84FF" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-surface-subtle dark:bg-black">
@@ -55,10 +82,15 @@ export default function ProfileScreen() {
             <Text
               style={{ fontFamily: Fonts.extraBold }}
               className="mt-3 text-2xl text-black dark:text-white">
-              {MOCK_PROFILE.name}
+              {profile.name}
             </Text>
             <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
-              {MOCK_PROFILE.age} anos · CPF {MOCK_PROFILE.cpf}
+              {[
+                profile.age ? `${profile.age} anos` : null,
+                profile.cpf ? `CPF ${formatCpf(profile.cpf)}` : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
           </View>
 
@@ -68,47 +100,65 @@ export default function ProfileScreen() {
             <Text
               style={{ fontFamily: Fonts.extraBold }}
               className="text-3xl text-black dark:text-white">
-              {MOCK_PROFILE.bloodType}
+              {profile.bloodType ?? '—'}
             </Text>
           </ProfileSection>
 
           <ProfileSection
             title="Alergias medicamentosas"
             icon={{ ios: 'exclamationmark.triangle.fill', android: 'warning', web: 'warning' }}>
-            <View className="flex-row flex-wrap gap-2">
-              {MOCK_PROFILE.allergies.map((allergy) => (
-                <InfoChip key={allergy} label={allergy} tone="danger" />
-              ))}
-            </View>
+            {profile.allergies.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                {profile.allergies.map((allergy) => (
+                  <InfoChip key={allergy.id} label={allergy.medicationName} tone="danger" />
+                ))}
+              </View>
+            ) : (
+              <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                Nenhuma alergia registrada.
+              </Text>
+            )}
           </ProfileSection>
 
           <ProfileSection
             title="Condições crônicas e lesões"
             icon={{ ios: 'bandage.fill', android: 'medical_services', web: 'medical_services' }}>
-            <View className="flex-row flex-wrap gap-2">
-              {MOCK_PROFILE.conditions.map((condition) => (
-                <InfoChip key={condition} label={condition} />
-              ))}
-            </View>
+            {profile.conditions.length > 0 ? (
+              <View className="flex-row flex-wrap gap-2">
+                {profile.conditions.map((condition) => (
+                  <InfoChip key={condition.id} label={condition.conditionName} />
+                ))}
+              </View>
+            ) : (
+              <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                Nenhuma condição registrada.
+              </Text>
+            )}
           </ProfileSection>
 
           <ProfileSection
             title="Medicamentos de uso contínuo"
             icon={{ ios: 'pills.fill', android: 'medication', web: 'medication' }}>
-            <View className="gap-3">
-              {MOCK_PROFILE.medications.map((med) => (
-                <View key={med.name} className="flex-row items-center justify-between">
-                  <Text
-                    style={{ fontFamily: Fonts.semiBold }}
-                    className="text-sm text-black dark:text-white">
-                    {med.name}
-                  </Text>
-                  <Text style={{ fontFamily: Fonts.regular }} className="text-xs text-muted">
-                    {med.schedule}
-                  </Text>
-                </View>
-              ))}
-            </View>
+            {profile.continuousMedications.length > 0 ? (
+              <View className="gap-3">
+                {profile.continuousMedications.map((medication) => (
+                  <View key={medication.id} className="flex-row items-center justify-between">
+                    <Text
+                      style={{ fontFamily: Fonts.semiBold }}
+                      className="text-sm text-black dark:text-white">
+                      {medication.medicationName} {medication.dosage}
+                    </Text>
+                    <Text style={{ fontFamily: Fonts.regular }} className="text-xs text-muted">
+                      {medication.frequency}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                Nenhum medicamento contínuo registrado.
+              </Text>
+            )}
           </ProfileSection>
         </ScrollView>
       </SafeAreaView>
