@@ -1,45 +1,21 @@
-import { router, useNavigation } from 'expo-router';
+import { router, useFocusEffect, useNavigation } from 'expo-router';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppointmentCard } from '@/components/appointment-card';
 import { ExamFileCard } from '@/components/exam-file-card';
 import { ProfileSection } from '@/components/profile-section';
 import { BottomTabInset, Fonts } from '@/constants/theme';
+import { useAuth } from '@/contexts/auth-context';
+import { listAppointments, type Appointment } from '@/services/appointments';
+import { getProfile, type PatientProfile } from '@/services/clinical-profile';
+import { listExamAttachments, type ExamAttachment } from '@/services/exams';
+import { formatAppointmentDateTime } from '@/utils/date';
 
-const MOCK_PROFILE = {
-  name: 'Ana Beatriz Ferreira',
-  bloodType: 'O+',
-  allergyCount: 3,
-};
-
-const NEXT_APPOINTMENT = {
-  title: 'Cardiologista — Dra. Camila Nogueira',
-  date: '12/03/2026 às 14h30',
-  status: 'scheduled' as const,
-};
-
-const RECENT_EXAMS = [
-  { id: '1', name: 'Raio-x do joelho', date: '12/03/2026', type: 'image' as const },
-  { id: '2', name: 'Hemograma completo', date: '05/03/2026', type: 'document' as const },
-  { id: '3', name: 'Raio-x do cotovelo', date: '01/03/2026', type: 'image' as const },
-];
-
-const VISIT_LOG = [
-  {
-    id: '1',
-    doctor: 'Dra. Camila Nogueira — Cardiologia',
-    date: '18/02/2026',
-    note: 'Ajuste de dose do Propranolol. Retorno em 4 semanas para reavaliar a arritmia.',
-  },
-  {
-    id: '2',
-    doctor: 'Dr. Renato Silva — Ortopedia',
-    date: '03/02/2026',
-    note: 'Fisioterapia liberada para o joelho direito, 2x por semana.',
-  },
-];
+const RECENT_EXAMS_LIMIT = 3;
+const VISIT_LOG_LIMIT = 2;
 
 function QuickAction({
   icon,
@@ -82,6 +58,61 @@ export default function HomeScreen() {
   // (tabs)/_layout.tsx, not expo-router routes — `router.push` can't reach them,
   // so cross-tab links go through this navigator's own `navigate` instead.
   const navigation = useNavigation<any>();
+  const { user, token } = useAuth();
+  const [profile, setProfile] = useState<PatientProfile | null>(null);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [exams, setExams] = useState<ExamAttachment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    if (!token) {
+      return;
+    }
+    const [profileResult, appointmentsResult, examsResult] = await Promise.allSettled([
+      getProfile(token),
+      listAppointments(token),
+      listExamAttachments(token),
+    ]);
+    if (profileResult.status === 'fulfilled') {
+      setProfile(profileResult.value);
+    }
+    if (appointmentsResult.status === 'fulfilled') {
+      setAppointments(appointmentsResult.value.data);
+    }
+    if (examsResult.status === 'fulfilled') {
+      setExams(examsResult.value.data);
+    }
+    setIsLoading(false);
+  }, [token]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
+
+  const firstName = (profile?.name ?? user?.name ?? '').split(' ')[0];
+
+  const nextAppointment = appointments
+    .filter((appointment) => appointment.status === 'scheduled')
+    .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))[0];
+
+  const recentExams = [...exams]
+    .sort((a, b) => (b.exam_date ?? '').localeCompare(a.exam_date ?? ''))
+    .slice(0, RECENT_EXAMS_LIMIT);
+
+  const visitLog = appointments
+    .filter((appointment) => appointment.status === 'completed' && appointment.notes)
+    .sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at))
+    .slice(0, VISIT_LOG_LIMIT);
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-subtle dark:bg-black">
+        <ActivityIndicator color="#0A84FF" />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-surface-subtle dark:bg-black">
@@ -94,7 +125,7 @@ export default function HomeScreen() {
             <Text
               style={{ fontFamily: Fonts.extraBold }}
               className="text-2xl text-black dark:text-white">
-              Olá, {MOCK_PROFILE.name.split(' ')[0]}
+              Olá{firstName ? `, ${firstName}` : ''}
             </Text>
             <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
               Aqui está um resumo da sua saúde hoje
@@ -118,7 +149,7 @@ export default function HomeScreen() {
               />
             </View>
             <Text style={{ fontFamily: Fonts.extraBold }} className="text-xl text-white">
-              {MOCK_PROFILE.name}
+              {profile?.name ?? user?.name ?? '—'}
             </Text>
             <View className="flex-row gap-8">
               <View className="gap-0.5">
@@ -126,7 +157,7 @@ export default function HomeScreen() {
                   Tipo sanguíneo
                 </Text>
                 <Text style={{ fontFamily: Fonts.extraBold }} className="text-lg text-white">
-                  {MOCK_PROFILE.bloodType}
+                  {profile?.bloodType ?? '—'}
                 </Text>
               </View>
               <View className="gap-0.5">
@@ -134,7 +165,7 @@ export default function HomeScreen() {
                   Alergias registradas
                 </Text>
                 <Text style={{ fontFamily: Fonts.extraBold }} className="text-lg text-white">
-                  {MOCK_PROFILE.allergyCount}
+                  {profile?.allergies.length ?? 0}
                 </Text>
               </View>
             </View>
@@ -167,12 +198,18 @@ export default function HomeScreen() {
           <ProfileSection
             title="Próxima consulta"
             icon={{ ios: 'calendar', android: 'calendar_month', web: 'calendar_month' }}>
-            <AppointmentCard
-              title={NEXT_APPOINTMENT.title}
-              date={NEXT_APPOINTMENT.date}
-              status={NEXT_APPOINTMENT.status}
-              onPress={() => navigation.navigate('calendar')}
-            />
+            {nextAppointment ? (
+              <AppointmentCard
+                title={nextAppointment.title}
+                date={formatAppointmentDateTime(nextAppointment.scheduled_at)}
+                status={nextAppointment.status}
+                onPress={() => navigation.navigate('calendar')}
+              />
+            ) : (
+              <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                Nenhuma consulta agendada.
+              </Text>
+            )}
             <SectionLink
               label="Ver agenda completa"
               onPress={() => navigation.navigate('calendar')}
@@ -193,37 +230,60 @@ export default function HomeScreen() {
               </View>
               <SectionLink label="Ver todos" onPress={() => navigation.navigate('files')} />
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3">
-              {RECENT_EXAMS.map((exam) => (
-                <View key={exam.id} className="w-28">
-                  <ExamFileCard name={exam.name} date={exam.date} type={exam.type} wide />
-                </View>
-              ))}
-            </ScrollView>
+            {recentExams.length === 0 ? (
+              <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                Nenhum exame anexado ainda.
+              </Text>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="gap-3">
+                {recentExams.map((exam) => (
+                  <View key={exam.id} className="w-28">
+                    <ExamFileCard
+                      name={exam.title}
+                      date={exam.exam_date ?? ''}
+                      type="image"
+                      uri={exam.url}
+                      token={token}
+                      wide
+                      onPress={() => navigation.navigate('files')}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            )}
           </View>
 
           <ProfileSection
             title="Diário de consultas"
             icon={{ ios: 'note.text', android: 'description', web: 'description' }}>
-            <View className="gap-4">
-              {VISIT_LOG.map((entry) => (
-                <View key={entry.id} className="gap-1">
-                  <View className="flex-row items-center justify-between">
-                    <Text
-                      style={{ fontFamily: Fonts.semiBold }}
-                      className="flex-1 text-sm text-black dark:text-white">
-                      {entry.doctor}
-                    </Text>
+            {visitLog.length === 0 ? (
+              <Text style={{ fontFamily: Fonts.regular }} className="text-sm text-muted">
+                Nenhum registro de consulta ainda.
+              </Text>
+            ) : (
+              <View className="gap-4">
+                {visitLog.map((appointment) => (
+                  <View key={appointment.id} className="gap-1">
+                    <View className="flex-row items-center justify-between">
+                      <Text
+                        style={{ fontFamily: Fonts.semiBold }}
+                        className="flex-1 text-sm text-black dark:text-white">
+                        {appointment.title}
+                      </Text>
+                      <Text style={{ fontFamily: Fonts.regular }} className="text-xs text-muted">
+                        {formatAppointmentDateTime(appointment.scheduled_at)}
+                      </Text>
+                    </View>
                     <Text style={{ fontFamily: Fonts.regular }} className="text-xs text-muted">
-                      {entry.date}
+                      {appointment.notes}
                     </Text>
                   </View>
-                  <Text style={{ fontFamily: Fonts.regular }} className="text-xs text-muted">
-                    {entry.note}
-                  </Text>
-                </View>
-              ))}
-            </View>
+                ))}
+              </View>
+            )}
           </ProfileSection>
         </ScrollView>
       </SafeAreaView>
