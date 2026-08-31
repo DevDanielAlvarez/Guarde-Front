@@ -58,6 +58,7 @@ function RootNavigator() {
         <Stack.Screen name="settings" />
         <Stack.Screen name="chat" options={{ presentation: 'modal' }} />
         <Stack.Screen name="medical-summary" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="medical-summary-preview" />
         <Stack.Screen name="add-exam" options={{ presentation: 'modal' }} />
         <Stack.Screen name="schedule-appointment" options={{ presentation: 'modal' }} />
         <Stack.Screen name="appointment/[id]" options={{ presentation: 'modal' }} />
